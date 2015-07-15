@@ -18,9 +18,11 @@ def createFiles(fileNames):
 def writeClassInFiles(fileName, className, isNotHeader = False):
 	if fileName is not None:
 		fileData = ''
-		if isNotHeader is True :
-			fileData = '#include \"'+className + '.hxx\"\n'
-		fileData = fileData + 'class'+ className + ' {'
+		if isNotHeader is True:
+			fileData = '#include <iostream>\n'
+			fileData = fileData + '#include \"'+className + '.hxx\"\n'
+			fileData = fileData + 'using namespace std;\n'
+		fileData = fileData + 'class '+ className + ' {'
 		fileName.write(fileData)
 		fileName.write('\n')
 
@@ -39,11 +41,10 @@ def recurse_keys(df, indent = '  '):
 	headerFiles = ''
 	cxxFiles = ''
 	for key in df.keys():
-		headerFiles = open(hxxDir+'/'+str(key)+'.hxx','a')
-
 		json_obj.update({str(key) : type(df[key])})
 
-		if type(df[key]) == dict:
+		if type(df[key]) is dict:
+			headerFiles = open(hxxDir+'/'+str(key)+'.hxx','a')
 			inner_dict = df[key].copy()
 			dict_obj.update({type(df[key]):str(df[key])})
 			writeClassInFiles(headerFiles, str(key))
@@ -51,32 +52,24 @@ def recurse_keys(df, indent = '  '):
 			writeClassInFiles(cxxFiles, str(key), True)
 			classMemebers = ''
 			for in_key in inner_dict.keys():
-				# print in_key,'->',inner_dict[in_key]
 				if type(inner_dict[in_key]) is int:
-					classMemebers = 'int' + ' ' + in_key + ';\n'
+					classMemebers = '\tint' + ' ' + in_key + ';\n'
 				if type(inner_dict[in_key]) is unicode:
-					classMemebers = 'string' + ' ' + in_key + ';\n'
+					classMemebers = '\tstring' + ' ' + in_key + ';\n'
 				if type(inner_dict[in_key]) is list:
 					inner_lst = list()
 					inner_lst = inner_dict[in_key]
 					lst_len = len(inner_lst)
-					classMemebers = in_key + ' ' + str(in_key).upper() + '[' + str(lst_len) +  ' ]'+';\n'
+					classMemebers = '\t'+in_key + ' ' + str(in_key).upper() + '[' + str(lst_len) +  ']'+';\n'
 				cxxFiles.write(classMemebers)
 
 
-		elif type(df[key]) == list:
+		elif type(df[key]) is list:
 			headerFiles = open(hxxDir+'/'+str(key)+'.hxx','a')
 			lst_obj.update({type(df[key]):str(df[key])})
 			writeClassInFiles(headerFiles, str(key))
 			cxxFiles = open(cxxDir+'/'+str(key)+'.cxx','a')
 			writeClassInFiles(cxxFiles, str(key), True)
-			# if headerFiles is not None :
-			# 	writeClassInFiles(headerFiles, str(key), False, other_obj)
-			
-			# if cxxFiles is not None:
-			# 	writeClassInFiles(cxxFiles, str(key), True, other_obj)
-
-
 
 		if isinstance(df[key], dict):
 			recurse_keys(df[key], indent+'   ')
@@ -95,9 +88,6 @@ try:
 		json_data = json.load(json_file)
 
 		recurse_keys(json_data)
-		# if json_obj is not None:
-		# 	for key, val in json_obj.items():
-		# 		print key,'->',val
 
 except:
 	print "Error : File Not Found ...!!!"
