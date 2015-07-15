@@ -22,6 +22,7 @@ def writeClassInFiles(fileName, className, isNotHeader = False):
 			fileData = '#include \"'+className + '.hxx\"\n'
 		fileData = fileData + 'class'+ className + ' {'
 		fileName.write(fileData)
+		fileName.write('\n')
 
 	else :
 		print fileName,'unable to open'
@@ -48,9 +49,20 @@ def recurse_keys(df, indent = '  '):
 			writeClassInFiles(headerFiles, str(key))
 			cxxFiles = open(cxxDir+'/'+str(key)+'.cxx','a')
 			writeClassInFiles(cxxFiles, str(key), True)
+			classMemebers = ''
+			for in_key in inner_dict.keys():
+				# print in_key,'->',inner_dict[in_key]
+				if type(inner_dict[in_key]) is int:
+					classMemebers = 'int' + ' ' + in_key + ';\n'
+				if type(inner_dict[in_key]) is unicode:
+					classMemebers = 'string' + ' ' + in_key + ';\n'
+				if type(inner_dict[in_key]) is list:
+					inner_lst = list()
+					inner_lst = inner_dict[in_key]
+					lst_len = len(inner_lst)
+					classMemebers = in_key + ' ' + str(in_key).upper() + '[' + str(lst_len) +  ' ]'+';\n'
+				cxxFiles.write(classMemebers)
 
-			for key in inner_dict.keys():
-				print key,'->',inner_dict[key]
 
 		elif type(df[key]) == list:
 			headerFiles = open(hxxDir+'/'+str(key)+'.hxx','a')
