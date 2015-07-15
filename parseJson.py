@@ -38,11 +38,11 @@ def recurse_keys(df, indent = '  '):
 	# j = json.dumps(rj, sort_keys=True,indent=2)            
 	# df1 = pandas.read_json(j)         
 	# '''
-	headerFiles = ''
-	cxxFiles = ''
+	# headerFiles = ''
+	# cxxFiles = ''
 	for key in df.keys():
 		json_obj.update({str(key) : type(df[key])})
-
+		print key,'->',type(df[key])
 		if type(df[key]) is dict:
 			headerFiles = open(hxxDir+'/'+str(key)+'.hxx','a')
 			inner_dict = df[key].copy()
@@ -70,6 +70,18 @@ def recurse_keys(df, indent = '  '):
 			writeClassInFiles(headerFiles, str(key))
 			cxxFiles = open(cxxDir+'/'+str(key)+'.cxx','a')
 			writeClassInFiles(cxxFiles, str(key), True)
+			inner_lst = list()
+			inner_lst = df[key]
+
+			for i in range(0, len(inner_lst)):
+				# print i,'->',type(inner_lst[i])
+				if type(inner_lst[i]) is dict:
+					inner_dict1 = inner_lst[0].copy()
+					recurse_keys(inner_lst[i])
+					# for inn_key in inner_dict1.keys():
+					# 	print inn_key,'->',type(inner_dict1[0])
+
+
 
 		if isinstance(df[key], dict):
 			recurse_keys(df[key], indent+'   ')
