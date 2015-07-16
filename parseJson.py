@@ -19,10 +19,12 @@ def writeClassInFiles(fileName, className, isNotHeader = False):
 			print 'write #include... in',className,'.cxx files'
 		else:
 			fileData = 'class '+ className + '{'
+			fileData = fileData + '\n\t' + 'public :\n'
 			fileData = fileData + '\n\t' + className +'() { }'
 		print 'write class',className,'in',className,'.hxx file'
 		fileName.write(fileData)
 		fileName.write('\n')
+		print 'FileData successfully write in',className,'.hxx/cxx files'
 
 	else :
 		print fileName,'unable to open'
@@ -30,19 +32,20 @@ def writeClassInFiles(fileName, className, isNotHeader = False):
 def writeGetterSetterMethods(fileName, getterSetterMethodNames):
 	print 'writeGetterSetterMethods()'
 	if fileName is not None:
-		for key in getterSetterMethodNames.keys():
-			methods = ''
-			print key,'=>',getterSetterMethodNames[key]
-			if getterSetterMethodNames[key] is 'int':
-				methods = methods + '\n\tvoid ' + 'set' + str(key).upper() + '(int ' + str(key).lower() + '){' + '\t}'
-				methods = methods + '\n\tint ' + 'get' + str(key).upper() + '( ){' + '\n\t\treturn ' + str(key).lower() + '\n\t}'
-				print 'created getter/setter methods for int type'
-			if getterSetterMethodNames[key] is 'unicode':
-				methods = methods + '\n\tvoid ' + 'set' + str(key).upper() + '(string ' + str(key).lower() + '){' + '\t}'
-				methods = methods + '\n\tstring ' + 'get' + str(key).upper() + '( ){' + '\n\t\treturn ' + str(key).lower() + '\n\t}'
-				print 'created getter/setter methods for string type'
-			fileName.write(methods)
-			print 'write getter/setter methods in',fileName
+		if getterSetterMethodNames is not None:
+			for key in getterSetterMethodNames.keys():
+				methods = ''
+				print key,'=>',getterSetterMethodNames[key]
+				if getterSetterMethodNames[key] is 'int':
+					methods = methods + '\n\tvoid ' + 'set' + str(key)[0].upper() + str(key)[1:]+ '(int ' + str(key).lower() + '){' + '\t}'
+					methods = methods + '\n\tint ' + 'get' + str(key)[0].upper() + str(key)[1:] + '( ){' + '\n\t\treturn ' + str(key).lower() + '\n\t}'
+					print 'created getter/setter methods for int type'
+				if getterSetterMethodNames[key] is 'unicode':
+					methods = methods + '\n\tvoid ' + 'set' + str(key)[0].upper() + str(key)[1:] + '(string ' + str(key).lower() + '){' + '\t}'
+					methods = methods + '\n\tstring ' + 'get' + str(key)[0].upper() + str(key)[1:] + '( ){' + '\n\t\treturn ' + str(key).lower() + '\n\t}'
+					print 'created getter/setter methods for string type'
+				fileName.write(methods)
+				print 'write getter/setter methods in',fileName
 
 
 
@@ -60,8 +63,6 @@ def recurse_keys(df, indent = '  '):
 	headerFiles = ''
 	cxxFiles = ''
 	for key in df.keys():
-		# json_obj.update({str(key) : type(df[key])})
-		print key,'->',type(df[key])
 		if type(df[key]) is dict:
 			headerFiles = open(hxxDir+'/'+str(key)+'.hxx','a')
 			file_lst.append(headerFiles)
@@ -102,18 +103,26 @@ def recurse_keys(df, indent = '  '):
 			inner_lst = list()
 			inner_lst = df[key]
 
-			for i in range(0, 1):
-				if isinstance((inner_lst[i]), dict):
-					recurse_keys(inner_lst[i], indent+'   ')
-					classMemebers1 = ''
-					inner_dict1 = inner_lst[i].copy()
-					for inn_key in inner_dict1.keys():
-						print inn_key
-						if type(inner_dict1[inn_key]) is int:
-							classMemebers1 = '\n\tint' + ' ' + inn_key + ';\n'
-						if type(inner_dict1[inn_key]) is unicode:
-							classMemebers1 = '\n\tstring' + ' ' + inn_key + ';\n'
-						cxxFiles.write(classMemebers1)
+			try:
+				if len(inner_lst) > 0 :
+					for i in range(0, 1):
+						if isinstance((inner_lst[i]), dict):
+							recurse_keys(inner_lst[i], indent+'   ')
+							classMemebers1 = ''
+							inner_dict1 = inner_lst[i].copy()
+							for inn_key in inner_dict1.keys():
+								getterSetter_dict = {}
+								print inn_key
+								if type(inner_dict1[inn_key]) is int:
+									classMemebers1 = '\n\tint' + ' ' + inn_key + ';\n'
+									getterSetter_dict.update({inn_key:'int'})
+								if type(inner_dict1[inn_key]) is unicode:
+									classMemebers1 = '\n\tstring' + ' ' + inn_key + ';\n'
+									getterSetter_dict.update({inn_key : 'unicode'})
+								cxxFiles.write(classMemebers1)
+								writeGetterSetterMethods(cxxFiles, getterSetter_dict)
+			except:
+				print 'list size is less than 0'
 
 		if isinstance(df[key], dict):
 			recurse_keys(df[key], indent+'   ')
@@ -133,13 +142,12 @@ try:
 	if not os.path.exists(cxxDir):
 		os.makedirs(cxxDir)
 
-	with open('jsonData.json') as json_file:
+	with open('jsonSampleData/jsonData10.json') as json_file:
 		json_data = json.load(json_file)
 		if json_data is not None:
 			recurse_keys(json_data)
-			# for i in range(0, len(file_lst)):
-			# 	print file_lst[i]
 			closeAllFiles(file_lst)
+			print 'files created successfully !!!!'
 		else:
 			print json_file,'contents invalid JSON !!!'
 
