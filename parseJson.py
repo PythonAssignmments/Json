@@ -107,18 +107,23 @@ def recurse_keys(df, indent = '  '):
 				if len(inner_lst) > 0 :
 					for i in range(0, 1):
 						if isinstance((inner_lst[i]), dict):
+							inner_dictionary = inner_lst[i].copy()
+							# for i_key in inner_dictionary.keys():
+								# print '\n++++++++++\n',i_key,'=>',type(inner_dictionary[i_key])
 							recurse_keys(inner_lst[i], indent+'   ')
 							classMemebers1 = ''
 							inner_dict1 = inner_lst[i].copy()
 							for inn_key in inner_dict1.keys():
 								getterSetter_dict = {}
-								print inn_key
+								print '+++++',inn_key,'=>',type(inner_dict1[inn_key])
 								if type(inner_dict1[inn_key]) is int:
 									classMemebers1 = '\n\tint' + ' ' + inn_key + ';\n'
 									getterSetter_dict.update({inn_key:'int'})
 								if type(inner_dict1[inn_key]) is unicode:
 									classMemebers1 = '\n\tstring' + ' ' + inn_key + ';\n'
 									getterSetter_dict.update({inn_key : 'unicode'})
+								if type(inner_dict1[inn_key]) is dict:
+									classMemebers1 = '\n\t' + inn_key + ' ' + inn_key.upper() + ';\n'
 								cxxFiles.write(classMemebers1)
 								writeGetterSetterMethods(cxxFiles, getterSetter_dict)
 			except:
@@ -142,7 +147,7 @@ try:
 	if not os.path.exists(cxxDir):
 		os.makedirs(cxxDir)
 
-	with open('jsonSampleData/jsonData10.json') as json_file:
+	with open('jsonSampleData/jsonData.json') as json_file:
 		json_data = json.load(json_file)
 		if json_data is not None:
 			recurse_keys(json_data)
