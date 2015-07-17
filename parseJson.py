@@ -7,6 +7,10 @@ hxxDir = outputDir+'/hxx'
 cxxDir = outputDir+'/cpp'
 file_lst = list()
 
+# def writeClassMembers():
+
+
+
 def writeClassInFiles(fileName, className, isNotHeader = False):
 	print 'writeClassInFiles()'
 	if fileName is not None:
@@ -29,27 +33,47 @@ def writeClassInFiles(fileName, className, isNotHeader = False):
 	else :
 		print fileName,'unable to open'
 
-def writeGetterSetterMethods(fileName, getterSetterMethodNames):
+def writeGetterSetterMethods(fileName, getterSetterMethodNames, decl = False):
 	print 'writeGetterSetterMethods()'
 	if fileName is not None:
 		if getterSetterMethodNames is not None:
-			for key in getterSetterMethodNames.keys():
-				methods = ''
-				print key,'=>',getterSetterMethodNames[key]
-				if getterSetterMethodNames[key] is 'int':
-					methods = methods + '\n\tvoid ' + 'set' + str(key)[0].upper() + str(key)[1:]+ '(int ' + str(key).lower() + '){' + '\t}\n'
-					methods = methods + '\n\tint ' + 'get' + str(key)[0].upper() + str(key)[1:] + '( ){' + '\n\t\treturn ' + str(key).lower() + '\n\t}\n'
-					print 'created getter/setter methods for int type'
-				if getterSetterMethodNames[key] is 'unicode':
-					methods = methods + '\n\tvoid ' + 'set' + str(key)[0].upper() + str(key)[1:] + '(string ' + str(key).lower() + '){' + '\t}'
-					methods = methods + '\n\tstring ' + 'get' + str(key)[0].upper() + str(key)[1:] + '( ){' + '\n\t\treturn ' + str(key).lower() + '\n\t}\n'
-					print 'created getter/setter methods for string type'
-				if getterSetterMethodNames[key] is 'dict':
-					methods = methods + '\n\tvoid ' + 'set' + str(key) + '(' + str(key) + ' '+ str(key).upper() + '){' + '\t}\n'
-					methods = methods + '\n\t' + str(key) + ' ' + 'get' + str(key) + '( ){' + '\n\t\treturn ' + str(key).upper() + '\n\t}\n'
-					print 'created getter/setter methods for dictionary type'
-				fileName.write(methods)
-				print 'write getter/setter methods in',fileName
+			if decl is True:
+				for key in getterSetterMethodNames.keys():
+					methods = ''
+					print key,'=>',getterSetterMethodNames[key]
+					if getterSetterMethodNames[key] is 'int':
+						methods = methods + '\n\tvoid ' + 'set' + str(key)[0].upper() + str(key)[1:]+ '(int ' + str(key).lower() + '){' + '\t}\n'
+						methods = methods + '\n\tint ' + 'get' + str(key)[0].upper() + str(key)[1:] + '( ){' + '\n\t\treturn ' + str(key).lower() + '\n\t}\n'
+						print 'created getter/setter methods for int type'
+					if getterSetterMethodNames[key] is 'unicode':
+						methods = methods + '\n\tvoid ' + 'set' + str(key)[0].upper() + str(key)[1:] + '(string ' + str(key).lower() + '){' + '\t}'
+						methods = methods + '\n\tstring ' + 'get' + str(key)[0].upper() + str(key)[1:] + '( ){' + '\n\t\treturn ' + str(key).lower() + '\n\t}\n'
+						print 'created getter/setter methods for string type'
+					if getterSetterMethodNames[key] is 'dict':
+						methods = methods + '\n\tvoid ' + 'set' + str(key) + '(' + str(key) + ' '+ str(key).upper() + '){' + '\t}\n'
+						methods = methods + '\n\t' + str(key) + ' ' + 'get' + str(key) + '( ){' + '\n\t\treturn ' + str(key).upper() + '\n\t}\n'
+						print 'created getter/setter methods for dictionary type'
+					fileName.write(methods)
+					print 'write getter/setter methods defination in',fileName
+			else :
+				for key in getterSetterMethodNames.keys():
+					methods = ''
+					print key,'=>',getterSetterMethodNames[key]
+					if getterSetterMethodNames[key] is 'int':
+						methods = methods + '\n\tvoid ' + 'set' + str(key)[0].upper() + str(key)[1:]+ '(int ' + str(key).lower() + ');\n'
+						methods = methods + '\n\tint ' + 'get' + str(key)[0].upper() + str(key)[1:] + '( );\n'
+						print 'created getter/setter methods for int type'
+					if getterSetterMethodNames[key] is 'unicode':
+						methods = methods + '\n\tvoid ' + 'set' + str(key)[0].upper() + str(key)[1:] + '(string ' + str(key).lower() + ');\n'
+						methods = methods + '\n\tstring ' + 'get' + str(key)[0].upper() + str(key)[1:] + '( );\n'
+						print 'created getter/setter methods for string type'
+					if getterSetterMethodNames[key] is 'dict':
+						methods = methods + '\n\tvoid ' + 'set' + str(key) + '(' + str(key) + ' '+ str(key).upper() + ');\n'
+						methods = methods + '\n\t' + str(key) + ' ' + 'get' + str(key) + '( );\n'
+						print 'created getter/setter methods for dictionary type'
+					fileName.write(methods)
+					print 'write getter/setter methods declaration in',fileName
+
 
 
 
@@ -89,9 +113,10 @@ def recurse_keys(df, indent = '  '):
 				if type(inner_dict[in_key]) is dict:
 					classMemebers = '\n\t' + in_key + ' ' + in_key.upper() + ';\n'
 					getterSetter_dict.update({in_key:'dict'})
+				headerFiles.write(classMemebers)
 				cxxFiles.write(classMemebers)
-				writeGetterSetterMethods(cxxFiles, getterSetter_dict)
-				# cxxFiles.write(classMemebers)
+				writeGetterSetterMethods(headerFiles, getterSetter_dict, False)
+				writeGetterSetterMethods(cxxFiles, getterSetter_dict, True)
 
 		elif type(df[key]) is list:
 			headerFiles = open(hxxDir+'/'+str(key)+'.hxx','a')
@@ -108,8 +133,6 @@ def recurse_keys(df, indent = '  '):
 					for i in range(0, 1):
 						if isinstance((inner_lst[i]), dict):
 							inner_dictionary = inner_lst[i].copy()
-							# for i_key in inner_dictionary.keys():
-								# print '\n++++++++++\n',i_key,'=>',type(inner_dictionary[i_key])
 							recurse_keys(inner_lst[i], indent+'   ')
 							classMemebers1 = ''
 							inner_dict1 = inner_lst[i].copy()
@@ -125,8 +148,10 @@ def recurse_keys(df, indent = '  '):
 								if type(inner_dict1[inn_key]) is dict:
 									classMemebers1 = '\n\t' + inn_key + ' ' + inn_key.upper() + ';\n'
 									getterSetter_dict.update({inn_key:'dict'})
+								headerFiles.write(classMemebers1)
 								cxxFiles.write(classMemebers1)
-								writeGetterSetterMethods(cxxFiles, getterSetter_dict)
+								writeGetterSetterMethods(headerFiles, getterSetter_dict, False)
+								writeGetterSetterMethods(cxxFiles, getterSetter_dict, True)
 			except:
 				print 'list size is less than 0'
 
@@ -148,7 +173,7 @@ try:
 	if not os.path.exists(cxxDir):
 		os.makedirs(cxxDir)
 
-	with open('jsonSampleData/jsonData11.json') as json_file:
+	with open('jsonSampleData/jsonData10.json') as json_file:
 		json_data = json.load(json_file)
 		if json_data is not None:
 			recurse_keys(json_data)
