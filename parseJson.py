@@ -37,13 +37,17 @@ def writeGetterSetterMethods(fileName, getterSetterMethodNames):
 				methods = ''
 				print key,'=>',getterSetterMethodNames[key]
 				if getterSetterMethodNames[key] is 'int':
-					methods = methods + '\n\tvoid ' + 'set' + str(key)[0].upper() + str(key)[1:]+ '(int ' + str(key).lower() + '){' + '\t}'
-					methods = methods + '\n\tint ' + 'get' + str(key)[0].upper() + str(key)[1:] + '( ){' + '\n\t\treturn ' + str(key).lower() + '\n\t}'
+					methods = methods + '\n\tvoid ' + 'set' + str(key)[0].upper() + str(key)[1:]+ '(int ' + str(key).lower() + '){' + '\t}\n'
+					methods = methods + '\n\tint ' + 'get' + str(key)[0].upper() + str(key)[1:] + '( ){' + '\n\t\treturn ' + str(key).lower() + '\n\t}\n'
 					print 'created getter/setter methods for int type'
 				if getterSetterMethodNames[key] is 'unicode':
 					methods = methods + '\n\tvoid ' + 'set' + str(key)[0].upper() + str(key)[1:] + '(string ' + str(key).lower() + '){' + '\t}'
-					methods = methods + '\n\tstring ' + 'get' + str(key)[0].upper() + str(key)[1:] + '( ){' + '\n\t\treturn ' + str(key).lower() + '\n\t}'
+					methods = methods + '\n\tstring ' + 'get' + str(key)[0].upper() + str(key)[1:] + '( ){' + '\n\t\treturn ' + str(key).lower() + '\n\t}\n'
 					print 'created getter/setter methods for string type'
+				if getterSetterMethodNames[key] is 'dict':
+					methods = methods + '\n\tvoid ' + 'set' + str(key) + '(' + str(key) + ' '+ str(key).upper() + '){' + '\t}\n'
+					methods = methods + '\n\t' + str(key) + ' ' + 'get' + str(key) + '( ){' + '\n\t\treturn ' + str(key).upper() + '\n\t}\n'
+					print 'created getter/setter methods for dictionary type'
 				fileName.write(methods)
 				print 'write getter/setter methods in',fileName
 
@@ -124,6 +128,7 @@ def recurse_keys(df, indent = '  '):
 									getterSetter_dict.update({inn_key : 'unicode'})
 								if type(inner_dict1[inn_key]) is dict:
 									classMemebers1 = '\n\t' + inn_key + ' ' + inn_key.upper() + ';\n'
+									getterSetter_dict.update({inn_key:'dict'})
 								cxxFiles.write(classMemebers1)
 								writeGetterSetterMethods(cxxFiles, getterSetter_dict)
 			except:
