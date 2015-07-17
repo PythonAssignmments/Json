@@ -55,13 +55,6 @@ def writeGetterSetterMethods(fileName, getterSetterMethodNames):
 
 
 def recurse_keys(df, indent = '  '):
-	# ''' 
-	# import json, requests, pandas
-	# r = requests.post(...)  
-	# rj = r.json() # json decode results query
-	# j = json.dumps(rj, sort_keys=True,indent=2)            
-	# df1 = pandas.read_json(j)         
-	# '''
 	print 'recurse_keys()'
 	getterSetter_dict = {}
 	headerFiles = ''
@@ -93,6 +86,9 @@ def recurse_keys(df, indent = '  '):
 					inner_lst = inner_dict[in_key]
 					lst_len = len(inner_lst)
 					classMemebers = '\n\t'+in_key + ' ' + str(in_key).upper() + '[' + str(lst_len) +  ']'+';\n'
+				if type(inner_dict[in_key]) is dict:
+					classMemebers = '\n\t' + in_key + ' ' + in_key.upper() + ';\n'
+					getterSetter_dict.update({in_key:'dict'})
 				cxxFiles.write(classMemebers)
 				writeGetterSetterMethods(cxxFiles, getterSetter_dict)
 				# cxxFiles.write(classMemebers)
@@ -152,7 +148,7 @@ try:
 	if not os.path.exists(cxxDir):
 		os.makedirs(cxxDir)
 
-	with open('jsonSampleData/jsonData.json') as json_file:
+	with open('jsonSampleData/jsonData11.json') as json_file:
 		json_data = json.load(json_file)
 		if json_data is not None:
 			recurse_keys(json_data)
