@@ -43,16 +43,20 @@ def writeGetterSetterMethods(fileName, getterSetterMethodNames, decl = False):
 					print key,'=>',getterSetterMethodNames[key]
 					if getterSetterMethodNames[key] is 'int':
 						methods = methods + '\n\tvoid ' + 'set' + str(key)[0].upper() + str(key)[1:]+ '(int ' + str(key).lower() + '){' + '\t}\n'
-						methods = methods + '\n\tint ' + 'get' + str(key)[0].upper() + str(key)[1:] + '( ){' + '\n\t\treturn ' + str(key).lower() + '\n\t}\n'
+						methods = methods + '\n\tint ' + 'get' + str(key)[0].upper() + str(key)[1:] + '( ){' + '\n\t\treturn ' + str(key).lower() + ';'+'\n\t}\n'
 						print 'created getter/setter methods for int type'
 					if getterSetterMethodNames[key] is 'unicode':
 						methods = methods + '\n\tvoid ' + 'set' + str(key)[0].upper() + str(key)[1:] + '(string ' + str(key).lower() + '){' + '\t}'
-						methods = methods + '\n\tstring ' + 'get' + str(key)[0].upper() + str(key)[1:] + '( ){' + '\n\t\treturn ' + str(key).lower() + '\n\t}\n'
+						methods = methods + '\n\tstring ' + 'get' + str(key)[0].upper() + str(key)[1:] + '( ){' + '\n\t\treturn ' + str(key).lower() + ';' +'\n\t}\n'
 						print 'created getter/setter methods for string type'
 					if getterSetterMethodNames[key] is 'dict':
 						methods = methods + '\n\tvoid ' + 'set' + str(key) + '(' + str(key) + ' '+ str(key).upper() + '){' + '\t}\n'
-						methods = methods + '\n\t' + str(key) + ' ' + 'get' + str(key) + '( ){' + '\n\t\treturn ' + str(key).upper() + '\n\t}\n'
+						methods = methods + '\n\t' + str(key) + ' ' + 'get' + str(key) + '(){' + '\n\t\treturn ' + str(key).upper() + ';'+'\n\t}\n'
 						print 'created getter/setter methods for dictionary type'
+					if getterSetterMethodNames[key] is 'list' :
+						methods = methods + '\n\tvoid ' +  'set' + str(key) + '( ArrayList< ' + str(key) + '> ' + str(key).lower() +'List'+') {\t} \n'
+						methods = methods + '\n\tArrayList<' + str(key) + '> get' + str(key) + '(){' + '\n\t\treturn ' + str(key).lower() + 'List ;' + '\n\t}'
+						print 'Created getter/setter methods ArrayList'
 					fileName.write(methods)
 					print 'write getter/setter methods defination in',fileName
 			else :
@@ -71,7 +75,10 @@ def writeGetterSetterMethods(fileName, getterSetterMethodNames, decl = False):
 						methods = methods + '\n\tvoid ' + 'set' + str(key) + '(' + str(key) + ' '+ str(key).upper() + ');\n'
 						methods = methods + '\n\t' + str(key) + ' ' + 'get' + str(key) + '( );\n'
 						print 'created getter/setter methods for dictionary type'
-					fileName.write(methods)
+					if getterSetterMethodNames[key] is 'list':
+						methods = methods + '\n\tvoid ' + 'set' + str(key) + '( ArrayList<' + str(key) + '> ' + str(key).lower() + 'List' + ' );\n'
+						methods = methods + '\n\tArrayList<' + str(key) + '> ' + 'get' + str(key) + '();\n'
+ 					fileName.write(methods)
 					print 'write getter/setter methods declaration in',fileName
 
 
@@ -109,7 +116,8 @@ def recurse_keys(df, indent = '  '):
 					inner_lst = list()
 					inner_lst = inner_dict[in_key]
 					lst_len = len(inner_lst)
-					classMemebers = '\n\t'+in_key + ' ' + str(in_key).upper() + '[' + str(lst_len) +  ']'+';\n'
+					classMemebers = '\n\t'+ 'ArrayList <'+ in_key + '>' +' ' + str(in_key).lower() + 'List'+';\n'
+					getterSetter_dict.update({in_key:'list'})
 				if type(inner_dict[in_key]) is dict:
 					classMemebers = '\n\t' + in_key + ' ' + in_key.upper() + ';\n'
 					getterSetter_dict.update({in_key:'dict'})
@@ -173,7 +181,7 @@ try:
 	if not os.path.exists(cxxDir):
 		os.makedirs(cxxDir)
 
-	with open('jsonSampleData/jsonData10.json') as json_file:
+	with open('jsonSampleData/jsonData.json') as json_file:
 		json_data = json.load(json_file)
 		if json_data is not None:
 			recurse_keys(json_data)
