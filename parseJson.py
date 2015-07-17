@@ -3,16 +3,12 @@ import os
 import json
 
 outputDir = 'output'
-hxxDir = outputDir+'/hxx'
-cxxDir = outputDir+'/cpp'
+hxxDir = outputDir
+cxxDir = outputDir
 file_lst = list()
 
-# def writeClassMembers():
-
-
-
-def writeClassInFiles(fileName, className, isNotHeader = False):
-	print 'writeClassInFiles()'
+def writeClass(fileName, className, isNotHeader = False):
+	print 'writeClass()'
 	if fileName is not None:
 		fileData = ''
 		if isNotHeader is True:
@@ -81,12 +77,10 @@ def writeGetterSetterMethods(fileName, getterSetterMethodNames, decl = False):
  					fileName.write(methods)
 					print 'write getter/setter methods declaration in',fileName
 
+# def writeClassDataMembers(inner_dict):
 
-
-
-
-def recurse_keys(df, indent = '  '):
-	print 'recurse_keys()'
+def traverseParseJson(df):
+	print 'traverseParseJson()'
 	getterSetter_dict = {}
 	headerFiles = ''
 	cxxFiles = ''
@@ -96,21 +90,19 @@ def recurse_keys(df, indent = '  '):
 			file_lst.append(headerFiles)
 			print headerFiles,'is created.'
 			inner_dict = df[key].copy()
-			writeClassInFiles(headerFiles, str(key), False)
+			writeClass(headerFiles, str(key), False)
 			cxxFiles = open(cxxDir+'/'+str(key)+'.cxx','a')
 			file_lst.append(cxxFiles)
 			print cxxFiles,'is created.'
-			writeClassInFiles(cxxFiles, str(key), True)
+			writeClass(cxxFiles, str(key), True)
 			classMemebers = ''
 			for in_key in inner_dict.keys():
 				getterSetter_dict = {}
 				if type(inner_dict[in_key]) is int:
 					classMemebers = '\n\tint' + ' ' + in_key + ';\n'
-					# cxxFiles.write(classMemebers)
 					getterSetter_dict.update({in_key : 'int'})
 				if type(inner_dict[in_key]) is unicode:
 					classMemebers = '\n\tstring' + ' ' + in_key + ';\n'
-					# cxxFiles.write(classMemebers)
 					getterSetter_dict.update({in_key : 'unicode'})
 				if type(inner_dict[in_key]) is list:
 					inner_lst = list()
@@ -129,10 +121,10 @@ def recurse_keys(df, indent = '  '):
 		elif type(df[key]) is list:
 			headerFiles = open(hxxDir+'/'+str(key)+'.hxx','a')
 			file_lst.append(headerFiles)
-			writeClassInFiles(headerFiles, str(key))
+			writeClass(headerFiles, str(key))
 			cxxFiles = open(cxxDir+'/'+str(key)+'.cxx','a')
 			file_lst.append(cxxFiles)
-			writeClassInFiles(cxxFiles, str(key), True)
+			writeClass(cxxFiles, str(key), True)
 			inner_lst = list()
 			inner_lst = df[key]
 
@@ -141,7 +133,7 @@ def recurse_keys(df, indent = '  '):
 					for i in range(0, 1):
 						if isinstance((inner_lst[i]), dict):
 							inner_dictionary = inner_lst[i].copy()
-							recurse_keys(inner_lst[i], indent+'   ')
+							traverseParseJson(inner_lst[i])
 							classMemebers1 = ''
 							inner_dict1 = inner_lst[i].copy()
 							for inn_key in inner_dict1.keys():
@@ -164,7 +156,7 @@ def recurse_keys(df, indent = '  '):
 				print 'list size is less than 0'
 
 		if isinstance(df[key], dict):
-			recurse_keys(df[key], indent+'   ')
+			traverseParseJson(df[key])
 
 
 def closeAllFiles(fileNames):
@@ -174,17 +166,17 @@ def closeAllFiles(fileNames):
 			fileNames[i].close()
 
 try:
+	# make the output directory to store cxx and hxx files
 	if not os.path.exists(outputDir):
 		os.mkdir(outputDir)
-	if not os.path.exists(hxxDir):
-		os.makedirs(hxxDir)
-	if not os.path.exists(cxxDir):
-		os.makedirs(cxxDir)
 
 	with open('jsonSampleData/jsonData.json') as json_file:
+		# Deserialize the json instances into the python objects
 		json_data = json.load(json_file)
 		if json_data is not None:
-			recurse_keys(json_data)
+			# Traverse the json, so that get inner python objects
+			traverseParseJson(json_data)
+			# Close all open files
 			closeAllFiles(file_lst)
 			print 'files created successfully !!!!'
 		else:
