@@ -1,6 +1,7 @@
 # This file is use to parse the json which loaded using file
 import os
 import json
+import pdb
 
 outputDir = 'output'
 hxxDir = outputDir
@@ -77,7 +78,34 @@ def writeGetterSetterMethods(fileName, getterSetterMethodNames, decl = False):
  					fileName.write(methods)
 					print 'write getter/setter methods declaration in',fileName
 
-# def writeClassDataMembers(inner_dict):
+def writeClassMembers(inner_dict, headerFiles, cxxFiles):
+	classMemebers = ''
+	for in_key in inner_dict.keys():
+		getterSetter_dict = {}
+		if type(inner_dict[in_key]) is int:
+			classMemebers = '\n\tint' + ' ' + in_key + ';\n'
+			getterSetter_dict.update({in_key : 'int'})
+			print 'Write int type'
+		if type(inner_dict[in_key]) is unicode:
+			classMemebers = '\n\tstring' + ' ' + in_key + ';\n'
+			getterSetter_dict.update({in_key : 'unicode'})
+			print 'Write unicode type'
+		if type(inner_dict[in_key]) is list:
+			inner_lst = list()
+			inner_lst = inner_dict[in_key]
+			lst_len = len(inner_lst)
+			classMemebers = '\n\t'+ 'ArrayList <'+ in_key + '>' +' ' + str(in_key).lower() + 'List'+';\n'
+			getterSetter_dict.update({in_key:'list'})
+			print 'Write ArrayList type'
+		if type(inner_dict[in_key]) is dict:
+			classMemebers = '\n\t' + in_key + ' ' + in_key.upper() + ';\n'
+			getterSetter_dict.update({in_key:'dict'})
+			print 'Write dictionary type'
+		print classMemebers
+		headerFiles.write(classMemebers)
+		cxxFiles.write(classMemebers)
+		writeGetterSetterMethods(headerFiles, getterSetter_dict, False)
+		writeGetterSetterMethods(cxxFiles, getterSetter_dict, True)
 
 def traverseParseJson(df):
 	print 'traverseParseJson()'
@@ -95,28 +123,7 @@ def traverseParseJson(df):
 			file_lst.append(cxxFiles)
 			print cxxFiles,'is created.'
 			writeClass(cxxFiles, str(key), True)
-			classMemebers = ''
-			for in_key in inner_dict.keys():
-				getterSetter_dict = {}
-				if type(inner_dict[in_key]) is int:
-					classMemebers = '\n\tint' + ' ' + in_key + ';\n'
-					getterSetter_dict.update({in_key : 'int'})
-				if type(inner_dict[in_key]) is unicode:
-					classMemebers = '\n\tstring' + ' ' + in_key + ';\n'
-					getterSetter_dict.update({in_key : 'unicode'})
-				if type(inner_dict[in_key]) is list:
-					inner_lst = list()
-					inner_lst = inner_dict[in_key]
-					lst_len = len(inner_lst)
-					classMemebers = '\n\t'+ 'ArrayList <'+ in_key + '>' +' ' + str(in_key).lower() + 'List'+';\n'
-					getterSetter_dict.update({in_key:'list'})
-				if type(inner_dict[in_key]) is dict:
-					classMemebers = '\n\t' + in_key + ' ' + in_key.upper() + ';\n'
-					getterSetter_dict.update({in_key:'dict'})
-				headerFiles.write(classMemebers)
-				cxxFiles.write(classMemebers)
-				writeGetterSetterMethods(headerFiles, getterSetter_dict, False)
-				writeGetterSetterMethods(cxxFiles, getterSetter_dict, True)
+			writeClassMembers(inner_dict, headerFiles, cxxFiles)
 
 		elif type(df[key]) is list:
 			headerFiles = open(hxxDir+'/'+str(key)+'.hxx','a')
@@ -136,22 +143,8 @@ def traverseParseJson(df):
 							traverseParseJson(inner_lst[i])
 							classMemebers1 = ''
 							inner_dict1 = inner_lst[i].copy()
-							for inn_key in inner_dict1.keys():
-								getterSetter_dict = {}
-								print '+++++',inn_key,'=>',type(inner_dict1[inn_key])
-								if type(inner_dict1[inn_key]) is int:
-									classMemebers1 = '\n\tint' + ' ' + inn_key + ';\n'
-									getterSetter_dict.update({inn_key:'int'})
-								if type(inner_dict1[inn_key]) is unicode:
-									classMemebers1 = '\n\tstring' + ' ' + inn_key + ';\n'
-									getterSetter_dict.update({inn_key : 'unicode'})
-								if type(inner_dict1[inn_key]) is dict:
-									classMemebers1 = '\n\t' + inn_key + ' ' + inn_key.upper() + ';\n'
-									getterSetter_dict.update({inn_key:'dict'})
-								headerFiles.write(classMemebers1)
-								cxxFiles.write(classMemebers1)
-								writeGetterSetterMethods(headerFiles, getterSetter_dict, False)
-								writeGetterSetterMethods(cxxFiles, getterSetter_dict, True)
+							writeClassMembers(inner_dict1, headerFiles, cxxFiles)
+
 			except:
 				print 'list size is less than 0'
 
@@ -170,12 +163,13 @@ try:
 	if not os.path.exists(outputDir):
 		os.mkdir(outputDir)
 
-	with open('jsonSampleData/jsonData.json') as json_file:
+	with open('jsonSampleData/jsonData0.json') as json_file:
 		# Deserialize the json instances into the python objects
 		json_data = json.load(json_file)
 		if json_data is not None:
 			# Traverse the json, so that get inner python objects
 			traverseParseJson(json_data)
+
 			# Close all open files
 			closeAllFiles(file_lst)
 			print 'files created successfully !!!!'
