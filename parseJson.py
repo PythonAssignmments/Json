@@ -26,7 +26,6 @@ def writeClass(fileName, className, isNotHeader = False):
 		print 'write class',className,'in',className,'.hxx file'
 		fileName.write(fileData)
 		fileName.write('\n')
-		print 'FileData successfully write in',className,'.hxx/cxx files'
 
 	else :
 		print fileName,'unable to open'
@@ -85,19 +84,21 @@ def writeGetterSetterMethods(fileName, getterSetterMethodNames, defination = Fal
  					fileName.write(methods)
 					print 'write getter/setter methods declaration in',fileName
 
-def traverseParseJson(df):
+def traverseParseJson(df, root):
 	print 'traverseParseJson()'
 	getterSetter_dict = {}
 	headerFiles = ''
 	cxxFiles = ''
 	for key in df.keys():
 		if type(df[key]) is dict:
-			headerFiles = open(hxxDir+'/'+str(key)+'.hxx','w+')
+			headerFiles = open(root+'/'+str(key)+'.hxx','w+')
 			file_lst.append(headerFiles)
+			print file_lst
+			print 'file open'
 			print headerFiles,'is created.'
 			inner_dict = df[key].copy()
 			writeClass(headerFiles, str(key), False)
-			cxxFiles = open(cxxDir+'/'+str(key)+'.cxx','w+')
+			cxxFiles = open(root+'/'+str(key)+'.cxx','w+')
 			file_lst.append(cxxFiles)
 			print cxxFiles,'is created.'
 			writeClass(cxxFiles, str(key), True)
@@ -129,10 +130,10 @@ def traverseParseJson(df):
 				writeGetterSetterMethods(cxxFiles, getterSetter_dict, True)
 
 		elif type(df[key]) is list:
-			headerFiles = open(hxxDir+'/'+str(key)+'.hxx','a')
+			headerFiles = open(root+'/'+str(key)+'.hxx','w+')
 			file_lst.append(headerFiles)
 			writeClass(headerFiles, str(key))
-			cxxFiles = open(cxxDir+'/'+str(key)+'.cxx','a')
+			cxxFiles = open(root+'/'+str(key)+'.cxx','w+')
 			file_lst.append(cxxFiles)
 			writeClass(cxxFiles, str(key), True)
 			inner_lst = list()
@@ -143,7 +144,7 @@ def traverseParseJson(df):
 					for i in range(0, 1):
 						if isinstance((inner_lst[i]), dict):
 							inner_dictionary = inner_lst[i].copy()
-							traverseParseJson(inner_lst[i])
+							traverseParseJson(inner_lst[i], root)
 							classMemebers1 = ''
 							inner_dict1 = inner_lst[i].copy()
 							for inn_key in inner_dict1.keys():
@@ -172,12 +173,13 @@ def traverseParseJson(df):
 				print 'list size is less than 0'
 
 		if isinstance(df[key], dict):
-			traverseParseJson(df[key])
+			traverseParseJson(df[key], root)
 
 
 def closeAllFiles(fileNames):
 	if fileNames is not None:
 		for i in range(0, len(fileNames)):
+			print fileNames[i],'=>',len(fileNames)
 			fileNames[i].write('\n };')
 			fileNames[i].close()
 			print fileNames[i],' closed'
@@ -192,6 +194,7 @@ def writeRelativeHeaderFiles(headerFiles):
 					oldData = fp1.read()
 					fp1.seek(0)
 					fp1.write(strH + oldData)
+					fp1.close()
 			except:
 				print "Failed to open ", headerFiles[key]
 
@@ -203,20 +206,26 @@ try:
 	if not os.path.exists(outputDir):
 		os.mkdir(outputDir)
 
-	with open(raw_input('Enter json file name : ')) as json_file:
-		# Deserialize the json instances into the python objects
-		json_data = json.load(json_file)
-		if json_data is not None:
-			# Traverse the json, so that get inner python objects
-			traverseParseJson(json_data)
-			# writeRelativeHeaderFiles(objAndFiles)
-			# Close all open files
-			closeAllFiles(file_lst)
-			# include header file in relative header file
-			writeRelativeHeaderFiles(objAndFiles)
-			print ' files created successfully !!!!'
-		else:
-				print 'contents invalid JSON !!!'
+	for root, dirs, files in os.walk(raw_input("Enter Directory name:")):
+		for fileName in files:
+			if fileName.endswith('.json'):
+				filePath = os.path.join(root, fileName)
+				print root
+				with open(filePath) as json_file:
+					print json_file
+				# Deserialize the json instances into the python objects
+					json_data = json.load(json_file)
+					if json_data is not None:
+						# Traverse the json, so that get inner python objects
+						traverseParseJson(json_data, root)
+						# Close all open files
+						closeAllFiles(file_lst)
+						# include header file in relative header file
+						writeRelativeHeaderFiles(objAndFiles)
+						print ' files created successfully !!!!'
+						file_lst = []
+					else:
+							print 'contents invalid JSON !!!'
 
-except:
-	print "Error : File Not Found ...!!!"
+except Exception, err:
+	print Exception, err
