@@ -2,9 +2,6 @@
 import os
 import json
 
-outputDir = 'output'
-hxxDir = outputDir
-cxxDir = outputDir
 file_lst = list()
 objAndFiles = {}
 
@@ -202,9 +199,6 @@ def writeRelativeHeaderFiles(headerFiles):
 		print 'Empty dictionary'
 
 try:
-	# make the output directory to store cxx and hxx files
-	if not os.path.exists(outputDir):
-		os.mkdir(outputDir)
 
 	for root, dirs, files in os.walk(raw_input("Enter Directory name:")):
 		for fileName in files:
