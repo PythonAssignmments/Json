@@ -6,13 +6,13 @@ file_lst = list()
 objAndFiles = {}
 
 
-def writeClass(fileName, className, isNotHeader = False):
+def writeClass(fileName, className, isNotHeader, root):
 	print 'writeClass()'
 	if fileName is not None:
 		fileData = ''
 		if isNotHeader is True:
 			fileData = '#include <iostream>\n'
-			fileData = fileData + '#include \"'+className + '.hxx\"\n'
+			fileData = fileData + '#include \"' + root + '/'+className + '.hxx\"\n'
 			fileData = fileData + 'using namespace std;\n'
 			fileData = fileData + 'class '+ className + ' {'
 			print 'write #include... in',className,'.cxx files'
@@ -81,6 +81,38 @@ def writeGetterSetterMethods(fileName, getterSetterMethodNames, defination = Fal
  					fileName.write(methods)
 					print 'write getter/setter methods declaration in',fileName
 
+
+def writeClassMembers(inner_dict, headerFiles, cxxFiles):
+	classMemebers = ''
+	if inner_dict is not None:
+		for in_key in inner_dict.keys():
+			getterSetter_dict = {}
+			if type(inner_dict[in_key]) is int:
+				classMemebers = '\n\tint' + ' ' + in_key + ';\n'
+				getterSetter_dict.update({in_key : 'int'})
+			if type(inner_dict[in_key]) is unicode:
+				classMemebers = '\n\tstring' + ' ' + in_key + ';\n'
+				getterSetter_dict.update({in_key : 'unicode'})
+			if type(inner_dict[in_key]) is list:
+				inner_lst = list()
+				inner_lst = inner_dict[in_key]
+				lst_len = len(inner_lst)
+				classMemebers = '\n\t'+ 'ArrayList <'+ in_key + '>' +' ' + str(in_key).lower() + 'List'+';\n'
+				getterSetter_dict.update({in_key:'list'})
+				objAndFiles.update({str(in_key):headerFiles})
+			if type(inner_dict[in_key]) is dict:
+				classMemebers = '\n\t' + in_key + ' ' + in_key.upper() + ';\n'
+				getterSetter_dict.update({in_key:'dict'})
+			if type(inner_dict[in_key]) is bool:
+				classMemebers = '\n\tbool ' + in_key + ';\n'
+				getterSetter_dict.update({in_key:'bool'})
+			headerFiles.write(classMemebers)
+			cxxFiles.write(classMemebers)
+			writeGetterSetterMethods(headerFiles, getterSetter_dict, False)
+			writeGetterSetterMethods(cxxFiles, getterSetter_dict, True)
+
+
+
 def traverseParseJson(df, root):
 	print 'traverseParseJson()'
 	getterSetter_dict = {}
@@ -94,45 +126,20 @@ def traverseParseJson(df, root):
 			print 'file open'
 			print headerFiles,'is created.'
 			inner_dict = df[key].copy()
-			writeClass(headerFiles, str(key), False)
+			writeClass(headerFiles, str(key), False, root)
 			cxxFiles = open(root+'/'+str(key)+'.cxx','w+')
 			file_lst.append(cxxFiles)
 			print cxxFiles,'is created.'
-			writeClass(cxxFiles, str(key), True)
-			classMemebers = ''
-			for in_key in inner_dict.keys():
-				getterSetter_dict = {}
-				if type(inner_dict[in_key]) is int:
-					classMemebers = '\n\tint' + ' ' + in_key + ';\n'
-					getterSetter_dict.update({in_key : 'int'})
-				if type(inner_dict[in_key]) is unicode:
-					classMemebers = '\n\tstring' + ' ' + in_key + ';\n'
-					getterSetter_dict.update({in_key : 'unicode'})
-				if type(inner_dict[in_key]) is list:
-					inner_lst = list()
-					inner_lst = inner_dict[in_key]
-					lst_len = len(inner_lst)
-					classMemebers = '\n\t'+ 'ArrayList <'+ in_key + '>' +' ' + str(in_key).lower() + 'List'+';\n'
-					getterSetter_dict.update({in_key:'list'})
-					objAndFiles.update({str(in_key):headerFiles})
-				if type(inner_dict[in_key]) is dict:
-					classMemebers = '\n\t' + in_key + ' ' + in_key.upper() + ';\n'
-					getterSetter_dict.update({in_key:'dict'})
-				if type(inner_dict[in_key]) is bool:
-					classMemebers = '\n\tbool ' + in_key + ';\n'
-					getterSetter_dict.update({in_key:'bool'})
-				headerFiles.write(classMemebers)
-				cxxFiles.write(classMemebers)
-				writeGetterSetterMethods(headerFiles, getterSetter_dict, False)
-				writeGetterSetterMethods(cxxFiles, getterSetter_dict, True)
+			writeClass(cxxFiles, str(key), True, root)
+			writeClassMembers(inner_dict, headerFiles, cxxFiles)
 
 		elif type(df[key]) is list:
 			headerFiles = open(root+'/'+str(key)+'.hxx','w+')
 			file_lst.append(headerFiles)
-			writeClass(headerFiles, str(key))
+			writeClass(headerFiles, str(key), False, root)
 			cxxFiles = open(root+'/'+str(key)+'.cxx','w+')
 			file_lst.append(cxxFiles)
-			writeClass(cxxFiles, str(key), True)
+			writeClass(cxxFiles, str(key), True, root)
 			inner_lst = list()
 			inner_lst = df[key]
 
@@ -142,30 +149,9 @@ def traverseParseJson(df, root):
 						if isinstance((inner_lst[i]), dict):
 							inner_dictionary = inner_lst[i].copy()
 							traverseParseJson(inner_lst[i], root)
-							classMemebers1 = ''
 							inner_dict1 = inner_lst[i].copy()
-							for inn_key in inner_dict1.keys():
-								getterSetter_dict = {}
-								if type(inner_dict1[inn_key]) is int:
-									classMemebers1 = '\n\tint' + ' ' + inn_key + ';\n'
-									getterSetter_dict.update({inn_key:'int'})
-								if type(inner_dict1[inn_key]) is unicode:
-									classMemebers1 = '\n\tstring' + ' ' + inn_key + ';\n'
-									getterSetter_dict.update({inn_key : 'unicode'})
-								if type(inner_dict1[inn_key]) is dict:
-									classMemebers1 = '\n\t' + inn_key + ' ' + inn_key.upper() + ';\n'
-									getterSetter_dict.update({inn_key:'dict'})
-								if type(inner_dict1[inn_key]) is list:
-									inner_lst = list()
-									inner_lst = inner_dict1[inn_key]
-									lst_len = len(inner_lst)
-									classMemebers1 = '\n\t'+ 'ArrayList <'+ inn_key + '>' +' ' + str(inn_key).lower() + 'List'+';\n'
-									getterSetter_dict.update({inn_key:'list'})
-									objAndFiles.update({inn_key : headerFiles})
-								headerFiles.write(classMemebers1)
-								cxxFiles.write(classMemebers1)
-								writeGetterSetterMethods(headerFiles, getterSetter_dict, False)
-								writeGetterSetterMethods(cxxFiles, getterSetter_dict, True)
+							writeClassMembers(inner_dict1, headerFiles, cxxFiles)
+
 			except:
 				print 'list size is less than 0'
 
@@ -181,13 +167,13 @@ def closeAllFiles(fileNames):
 			fileNames[i].close()
 			print fileNames[i],' closed'
 
-def writeRelativeHeaderFiles(headerFiles):
+def writeRelativeHeaderFiles(headerFiles, root):
 	if headerFiles is not None:
 		for key in headerFiles.keys():
 			try :
 				print headerFiles[key].name
 				with open(headerFiles[key].name,'r+') as fp1:
-					strH = '#include \"' + key + '.hxx\"\n'
+					strH = '#include \"' + root + '/'+key + '.hxx\"\n'
 					oldData = fp1.read()
 					fp1.seek(0)
 					fp1.write(strH + oldData)
@@ -215,7 +201,7 @@ try:
 						# Close all open files
 						closeAllFiles(file_lst)
 						# include header file in relative header file
-						writeRelativeHeaderFiles(objAndFiles)
+						writeRelativeHeaderFiles(objAndFiles, root)
 						print ' files created successfully !!!!'
 						file_lst = []
 					else:
