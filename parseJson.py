@@ -92,12 +92,12 @@ def traverseParseJson(df):
 	cxxFiles = ''
 	for key in df.keys():
 		if type(df[key]) is dict:
-			headerFiles = open(hxxDir+'/'+str(key)+'.hxx','a')
+			headerFiles = open(hxxDir+'/'+str(key)+'.hxx','w+')
 			file_lst.append(headerFiles)
 			print headerFiles,'is created.'
 			inner_dict = df[key].copy()
 			writeClass(headerFiles, str(key), False)
-			cxxFiles = open(cxxDir+'/'+str(key)+'.cxx','a')
+			cxxFiles = open(cxxDir+'/'+str(key)+'.cxx','w+')
 			file_lst.append(cxxFiles)
 			print cxxFiles,'is created.'
 			writeClass(cxxFiles, str(key), True)
@@ -203,7 +203,7 @@ try:
 	if not os.path.exists(outputDir):
 		os.mkdir(outputDir)
 
-	with open('jsonSampleData/jsonData10.json') as json_file:
+	with open(raw_input('Enter json file name : ')) as json_file:
 		# Deserialize the json instances into the python objects
 		json_data = json.load(json_file)
 		if json_data is not None:
